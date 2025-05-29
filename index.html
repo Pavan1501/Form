@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Management Portal</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { width: 80%; margin: auto; overflow: hidden; }
+    .form-section { background: #fff; padding: 20px; margin-top: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+    label { display: block; margin-top: 10px; }
+    input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+    button { margin-top: 15px; padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th { background: #007BFF; color: white; }
+    .action-btns { display: flex; gap: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Login Page -->
+    <div class="form-section" id="login-section">
+      <h2>Login</h2>
+      <label for="username">Username</label>
+      <input type="text" id="username">
+
+      <label for="password">Password</label>
+      <input type="password" id="password">
+
+      <button onclick="validateLogin()">Login</button>
+    </div>
+
+    <!-- Employee Form -->
+    <div class="form-section" id="employee-form" style="display:none;">
+      <h2>Add Employee</h2>
+      <label>Employee ID (auto-generated)</label>
+      <input type="text" id="empId" readonly>
+
+      <label>First Name</label>
+      <input type="text" id="firstName">
+
+      <label>Last Name</label>
+      <input type="text" id="lastName">
+
+      <label>Middle Name</label>
+      <input type="text" id="middleName">
+
+      <label>Login ID</label>
+      <input type="text" id="loginId" readonly>
+
+      <label>Date of Birth</label>
+      <input type="date" id="dob">
+
+      <label>Department</label>
+      <select id="department">
+        <option>Engineering</option>
+        <option>Support</option>
+        <option>HR</option>
+        <option>Finance</option>
+      </select>
+
+      <label>Salary</label>
+      <input type="number" id="salary">
+
+      <label>Permanent Address</label>
+      <textarea id="permAddress"></textarea>
+
+      <label>Current Address</label>
+      <textarea id="currAddress"></textarea>
+
+      <label>ID Proof (PDF, 10KB - 1MB)</label>
+      <input type="file" id="idProof" accept="application/pdf">
+
+      <button onclick="addEmployee()">Submit</button>
+    </div>
+
+    <!-- Search Page -->
+    <div class="form-section" id="search-section" style="display:none;">
+      <h2>Search Employees</h2>
+      <label>Employee ID</label>
+      <input type="text" id="searchEmpId">
+
+      <label>First Name</label>
+      <input type="text" id="searchFirstName">
+
+      <label>Last Name</label>
+      <input type="text" id="searchLastName">
+
+      <label>Login ID</label>
+      <input type="text" id="searchLoginId">
+
+      <label>Date of Birth (From)</label>
+      <input type="date" id="dobFrom">
+
+      <label>Date of Birth (To)</label>
+      <input type="date" id="dobTo">
+
+      <label>Department</label>
+      <select id="searchDepartment">
+        <option value="">--Select--</option>
+        <option>Engineering</option>
+        <option>Support</option>
+        <option>HR</option>
+        <option>Finance</option>
+      </select>
+
+      <button onclick="searchEmployees()">Search</button>
+
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th>Select</th>
+            <th>Emp ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Login ID</th>
+            <th>Date of Birth</th>
+            <th>Department</th>
+            <th>Salary</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Results will be populated here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function validateLogin() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      if (user === 'admin' && pass === 'admin') {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('employee-form').style.display = 'block';
+        document.getElementById('search-section').style.display = 'block';
+      } else {
+        alert('Invalid credentials');
+      }
+    }
+
+    let employeeList = [];
+    let empCounter = 1;
+
+    function addEmployee() {
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const dob = new Date(document.getElementById('dob').value);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+
+      if (age < 18) {
+        alert("Employee must be older than 18.");
+        return;
+      }
+
+      let loginId = firstName[0] + lastName;
+      const existing = employeeList.filter(e => e.loginId.startsWith(loginId));
+      if (existing.length > 0) loginId += Math.floor(100 + Math.random() * 900);
+
+      const employee = {
+        empId: 'EMP' + empCounter++,
+        firstName,
+        lastName,
+        middleName: document.getElementById('middleName').value.trim(),
+        loginId,
+        dob: document.getElementById('dob').value,
+        department: document.getElementById('department').value,
+        salary: document.getElementById('salary').value,
+        permAddress: document.getElementById('permAddress').value,
+        currAddress: document.getElementById('currAddress').value
+      };
+      document.getElementById('empId').value = employee.empId;
+      document.getElementById('loginId').value = loginId;
+
+      employeeList.push(employee);
+      alert('Employee Added Successfully');
+    }
+
+    function searchEmployees() {
+      const tableBody = document.querySelector('#resultsTable tbody');
+      tableBody.innerHTML = '';
+      employeeList.forEach(emp => {
+        const row = `<tr>
+          <td><input type='checkbox'></td>
+          <td><a href="#">${emp.empId}</a></td>
+          <td>${emp.firstName}</td>
+          <td>${emp.lastName}</td>
+          <td>${emp.loginId}</td>
+          <td>${emp.dob}</td>
+          <td>${emp.department}</td>
+          <td>${emp.salary}</td>
+          <td>
+            <select>
+              <option>Actions</option>
+              <option>View</option>
+              <option>Edit</option>
+              <option>Delete</option>
+              <option>History</option>
+            </select>
+          </td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+    }
+  </script>
+</body>
+</html>
